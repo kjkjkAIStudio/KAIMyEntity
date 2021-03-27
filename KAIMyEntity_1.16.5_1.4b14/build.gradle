@@ -13,7 +13,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-version = '1.3b13'
+version = '1.4b14'
 group = 'com.kAIS.KAIMyEntity' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'KAIMyEntity'
 

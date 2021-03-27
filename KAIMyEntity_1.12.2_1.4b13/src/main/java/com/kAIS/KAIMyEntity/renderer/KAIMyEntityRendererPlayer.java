@@ -61,6 +61,10 @@ public class KAIMyEntityRendererPlayer extends Render<EntityPlayer>
                 {
                     AnimStateChangeOnce(mwpd, MMDModelManager.PlayerData.EntityStateLayer0.Die, "die");
                 }
+                else if (entity.isElytraFlying())
+                {
+                    AnimStateChangeOnce(mwpd, MMDModelManager.PlayerData.EntityStateLayer0.ElytraFly, "elytraFly");
+                }
                 else if (entity.isPlayerSleeping())
                 {
                     AnimStateChangeOnce(mwpd, MMDModelManager.PlayerData.EntityStateLayer0.Sleep, "sleep");
@@ -76,6 +80,10 @@ public class KAIMyEntityRendererPlayer extends Render<EntityPlayer>
                 else if (entity.isOnLadder())
                 {
                     AnimStateChangeOnce(mwpd, MMDModelManager.PlayerData.EntityStateLayer0.OnLadder, "onLadder");
+                }
+                else if (entity.posY - entity.prevPosY != 0.0f)
+                {
+                    AnimStateChangeOnce(mwpd, MMDModelManager.PlayerData.EntityStateLayer0.Air, "air");
                 }
                 else if (entity.isSprinting())
                 {

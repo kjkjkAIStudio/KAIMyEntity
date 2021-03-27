@@ -3,23 +3,14 @@ package com.kAIS.KAIMyEntity.renderer;
 import com.kAIS.KAIMyEntity.KAIMyEntity;
 import com.kAIS.KAIMyEntity.NativeFunc;
 import com.kAIS.KAIMyEntity.config.KAIMyEntityConfig;
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.client.gui.screen.inventory.InventoryScreen;
-import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.client.renderer.RenderState;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.util.math.vector.Matrix4f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL15;
 
 import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
-import java.nio.ShortBuffer;
 
 public class MMDModelOpenGL implements IMMDModel
 {
@@ -106,10 +97,10 @@ public class MMDModelOpenGL implements IMMDModel
         nf.DeleteModel(model.model);
     }
 
-    public void Render(float entityYaw, Matrix4f mat, int packedLight)
+    public void Render(double x, double y, double z, float entityYaw)
     {
         Update();
-        RenderModel(entityYaw, mat, packedLight);
+        RenderModel(x, y, z, entityYaw);
     }
 
     public void ChangeAnim(long anim, long layer)
@@ -167,23 +158,38 @@ public class MMDModelOpenGL implements IMMDModel
         RenderTimer.EndIfUse();
     }
 
-    void RenderModel(float entityYaw, Matrix4f mat, int packedLight)
+    void RenderModel(double x, double y, double z, float entityYaw)
     {
-        //Depth test disabled by default (1.16.5)
-        RenderSystem.enableDepthTest();
-        RenderSystem.enableBlend();
-        RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+        //Depth test enabled by default
+        //Lighting enabled by default
+        if (!KAIMyEntityConfig.openGLEnableLighting)
+            GlStateManager.disableLighting();
+        GlStateManager.enableBlend();
+        GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
 
-        RenderSystem.pushMatrix();
-        //In 1.16.5, base matrix is in matrixstack.
-        RenderSystem.multMatrix(mat);
-        //In 1.16.5, position is applied in base matrix.
-        //RenderSystem.translated(x, y, z);
-        RenderSystem.rotatef(-entityYaw, 0.0f, 1.0f, 0.0f);
-        RenderSystem.scaled(0.1, 0.1, 0.1);
+        GlStateManager.pushMatrix();
+        GlStateManager.translate(x, y, z);
+        GlStateManager.rotate(-entityYaw, 0.0f, 1.0f, 0.0f);
+        GlStateManager.scale(0.1, 0.1, 0.1);
 
         //Read vertex data
         RenderTimer.BeginIfUse("MMDModelOpenGL: Read vertex data into Java byte buffer");
+        /*
+        int posAndNorSize = vertexCount * 12; //float * 3
+        long posData = nf.GetPoss(model);
+        for (int i = 0; i < posAndNorSize; ++i)
+            posBuffer.put(nf.ReadByte(posData, i));
+        posBuffer.position(0);
+        long norData = nf.GetNormals(model);
+        for (int i = 0; i < posAndNorSize; ++i)
+            norBuffer.put(nf.ReadByte(norData, i));
+        norBuffer.position(0);
+        int uvSize = vertexCount * 8; //float * 2
+        long uvData = nf.GetUVs(model);
+        for (int i = 0; i < uvSize; ++i)
+            uvBuffer.put(nf.ReadByte(uvData, i));
+        uvBuffer.position(0);
+         */
         int posAndNorSize = vertexCount * 12; //float * 3
         long posData = nf.GetPoss(model);
         nf.CopyDataToByteBuffer(posBuffer, posData, posAndNorSize);
@@ -218,17 +224,17 @@ public class MMDModelOpenGL implements IMMDModel
 
             if (nf.GetMaterialBothFace(model, materialID))
             {
-                RenderSystem.disableCull();
+                GlStateManager.disableCull();
             }
             else
             {
-                RenderSystem.enableCull();
+                GlStateManager.enableCull();
             }
 
             if (mats[materialID].tex == 0)
-                Minecraft.getInstance().getRenderManager().textureManager.bindTexture(TextureManager.RESOURCE_LOCATION_EMPTY);
+                Minecraft.getMinecraft().getRenderManager().renderEngine.bindTexture(TextureManager.RESOURCE_LOCATION_EMPTY);
             else
-                RenderSystem.bindTexture(mats[materialID].tex);
+                GlStateManager.bindTexture(mats[materialID].tex);
             long startPos = nf.GetSubMeshBeginIndex(model, i) * indexElementSize;
             int count = nf.GetSubMeshVertexCount(model, i);
             GL11.glDrawElements(GL11.GL_TRIANGLES, count, indexType, startPos);
@@ -237,20 +243,14 @@ public class MMDModelOpenGL implements IMMDModel
         RenderTimer.EndIfUse();
 
         //Disable client state
-        if (KAIMyEntityConfig.openGLEnableLighting.get())
-        {
-            GL13.glClientActiveTexture(33986); //Texture id from LightTexture
-            GL11.glDisableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
-            GL13.glClientActiveTexture(GL13.GL_TEXTURE0);
-            Minecraft.getInstance().gameRenderer.getLightTexture().disableLightmap();
-        }
         GL11.glDisableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
         GL11.glDisableClientState(GL11.GL_NORMAL_ARRAY);
         GL11.glDisableClientState(GL11.GL_VERTEX_ARRAY);
 
-        RenderSystem.enableCull();
-        RenderSystem.popMatrix();
-        RenderSystem.disableBlend();
-        RenderSystem.disableDepthTest();
+        GlStateManager.enableCull();
+
+        GlStateManager.popMatrix();
+        GlStateManager.disableBlend();
+        GlStateManager.enableLighting();
     }
 }

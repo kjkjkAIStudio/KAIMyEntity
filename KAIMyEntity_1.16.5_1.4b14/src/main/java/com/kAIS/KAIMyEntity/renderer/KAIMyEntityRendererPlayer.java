@@ -3,7 +3,6 @@ package com.kAIS.KAIMyEntity.renderer;
 import com.kAIS.KAIMyEntity.NativeFunc;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.inventory.InventoryScreen;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.culling.ClippingHelper;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -66,6 +65,10 @@ public class KAIMyEntityRendererPlayer extends EntityRenderer<PlayerEntity>
                 {
                     AnimStateChangeOnce(mwpd, MMDModelManager.PlayerData.EntityStateLayer0.Die, "die");
                 }
+                else if (entityIn.isElytraFlying())
+                {
+                    AnimStateChangeOnce(mwpd, MMDModelManager.PlayerData.EntityStateLayer0.ElytraFly, "elytraFly");
+                }
                 else if (entityIn.isSleeping())
                 {
                     AnimStateChangeOnce(mwpd, MMDModelManager.PlayerData.EntityStateLayer0.Sleep, "sleep");
@@ -81,6 +84,10 @@ public class KAIMyEntityRendererPlayer extends EntityRenderer<PlayerEntity>
                 else if (entityIn.isOnLadder())
                 {
                     AnimStateChangeOnce(mwpd, MMDModelManager.PlayerData.EntityStateLayer0.OnLadder, "onLadder");
+                }
+                else if (entityIn.getPosY() - entityIn.prevPosY != 0.0f)
+                {
+                    AnimStateChangeOnce(mwpd, MMDModelManager.PlayerData.EntityStateLayer0.Air, "air");
                 }
                 else if (entityIn.isSprinting())
                 {

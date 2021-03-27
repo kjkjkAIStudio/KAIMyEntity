@@ -21,7 +21,7 @@ public class MMDModelManager
     public static IMMDModel LoadModel(String modelName, long layerCount)
     {
         //Model path
-        File modelDir = new File(Minecraft.getInstance().gameDir, "KAIMyEntity\\" + modelName);
+        File modelDir = new File(Minecraft.getMinecraft().mcDataDir, "KAIMyEntity\\" + modelName);
         String modelDirStr = modelDir.getAbsolutePath();
 
         String modelFilenameStr;
@@ -192,9 +192,9 @@ public class MMDModelManager
 
     static class PlayerData
     {
-        enum EntityStateLayer0 { Idle, Walk, Sprint, OnLadder, Swim, Ride, Sleep, Die }
+        enum EntityStateLayer0 { Idle, Walk, Sprint, Air, OnLadder, Swim, Ride, Sleep, ElytraFly, Die }
         EntityStateLayer0 stateLayer0;
-        enum EntityStateLayer1 { Idle, SwingRight, SwingLeft, Item1Right, Item1Left, Item2Right, Item2Left, Item3Right, Item3Left, Item4Right, Item4Left } //Idle means no animation in layer 1.
+        enum EntityStateLayer1 { Idle, SwingRight, SwingLeft, Item1Right, Item1Left, Item2Right, Item2Left, Item3Right, Item3Left, Item4Right, Item4Left } //Idle means no animation.
         EntityStateLayer1 stateLayer1;
         enum EntityStateLayer2 { Idle, Sneak } //Idle means no animation.
         EntityStateLayer2 stateLayer2;
@@ -217,7 +217,7 @@ public class MMDModelManager
 
     static void TryModelToPool(Model model)
     {
-        if (modelPool.size() > KAIMyEntityConfig.modelPoolMaxCount.get())
+        if (modelPool.size() > KAIMyEntityConfig.modelPoolMaxCount)
         {
             DeleteModel(model);
         }
